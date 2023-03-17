@@ -1,0 +1,86 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+
+public class PlayerContoller : MonoBehaviour
+{
+    [SerializeField] GameObject cameraHolder;
+
+    [SerializeField] public float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
+
+
+    
+    float verticalLookRotation;
+    bool grounded;
+    Vector3 smoothMoveVelocity;
+    Vector3 moveAmount;
+
+    Rigidbody rb;
+    public void Start()
+        {
+              Physics.IgnoreLayerCollision(6 , 7);
+        }
+
+    
+    void Awake()
+    {
+        
+         Debug.Log("awake");
+        rb = GetComponent<Rigidbody>();
+        
+
+    
+        
+    }
+
+    void Update()
+    {
+        Look();
+        Move();
+        Jump();
+    
+    }
+   
+    
+    #region  - Movement -
+
+    void Look()
+    {
+        transform.Rotate(Vector3.up * Input.GetAxisRaw("Mouse X") * mouseSensitivity);
+
+        verticalLookRotation += Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
+        verticalLookRotation = Mathf.Clamp(verticalLookRotation, -90f, 80f);
+
+       cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
+    }
+
+    void Move()
+    {
+        Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
+
+        moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * (Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : walkSpeed), ref smoothMoveVelocity, smoothTime);
+    }
+
+    void Jump()
+    {
+        if(Input.GetKeyDown(KeyCode.Space) && grounded)
+		{
+			rb.AddForce(transform.up * jumpForce);
+		}
+    }
+
+    public void SetGroundedState(bool _grounded)
+	{
+		grounded = _grounded;
+	}
+
+    void FixedUpdate()
+    {
+        
+        rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
+    }
+
+    #endregion
+}
